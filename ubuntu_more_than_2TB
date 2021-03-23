@@ -1,0 +1,48 @@
+root@xfs01:/home/tom# fdisk -l
+Disk /dev/sdb: 5 TiB, 5497558138880 bytes, 10737418240 sectors
+Disk model: Virtual disk    
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+
+parted /dev/sdb
+(parted)mklabel gpt
+(parted)unit TB
+(parted)mkpart primary 0TB 5TB
+(parted) print                                                            
+Model: VMware Virtual disk (scsi)
+Disk /dev/sdb: 5.50TB
+Sector size (logical/physical): 512B/512B
+Partition Table: gpt
+Disk Flags: 
+
+Number  Start   End     Size    File system  Name     Flags
+ 1      0.00TB  5.50TB  5.50TB               primary
+
+
+
+Disk /dev/sdb: 5 TiB, 5497558138880 bytes, 10737418240 sectors
+Disk model: Virtual disk    
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: gpt
+Disk identifier: 010024B4-5B73-414D-A81D-B7C1EAFE3B59
+
+Device     Start         End     Sectors Size Type
+/dev/sdb1   2048 10737416191 10737414144   5T Linux filesystem
+
+
+pvcreate /dev/sdb1
+vgcreate vg_veeam1 /dev/sdb1
+lvcreate -L +4500G -n xfs_veeam1 vg_veeam1
+mkfs.xfs /dev/vg_veeam1/xfs_veeam1
+
+
+mkdir /veeam1
+mount /dev/vg_veeam1/xfs_veeam1 /veeam1/
+
+blkid
+/dev/mapper/vg_veeam1-xfs_veeam1: UUID="39c2786a-92b5-4cfe-be7a-ea04ffec98b7" TYPE="xfs"
+
+echo 'UUID="39c2786a-92b5-4cfe-be7a-ea04ffec98b7 /veeam1 xfs defaults 1 1' >> /etc/fstab
